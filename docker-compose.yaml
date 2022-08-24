@@ -1,0 +1,29 @@
+version: "3"
+services:
+  postgresql:
+    image: postgres:alpine
+    # ports:
+    # - "5432:5432"
+    volumes:
+    - psql-data:/var/lib/postgresql/data
+    env_file:
+    - .env # POSTGRES_PASSWORD
+    environment:
+    - POSTGRES_USER=postgres
+    # - POSTGRES_PASSWORD=postgres
+    - POSTGRES_DB=postgres
+  
+  apiapp:
+    image: guestros/fastapi-users-example:latest
+    build: ./api-app/
+    ports:
+    - "8000:8000"
+    depends_on:
+    - postgresql
+    env_file:
+    - .env
+    # environment:
+    # - PSQL_URL="postgres:secret@postgresql/postgres" # user:password@postgresserver/db
+
+volumes:
+  psql-data:

@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: default
+  name: userapi-deployment
+  labels:
+    app: userapi
+spec:
+  strategy:
+    type: RollingUpdate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: userapi
+  template:
+    metadata:
+      labels:
+        app: userapi
+    spec:
+      # imagePullSecrets:
+      # - name: regcred
+      containers:
+      - name: userapi
+        imagePullPolicy: "Always"
+        image: guestros/fastapi-users-example:latest
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            memory: "50Mi"
+            cpu: 50m
+          limits:
+            memory: "512Mi"
+            cpu: 500m
+        env:
+          - name: POSTGRES_USER
+            value: postgres
+          - name: POSTGRES_DB
+            value: postgres
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: psql-password
+                key: POSTGRES_PASSWORD
+          - name: PSQL_URL
+            valueFrom:
+              secretKeyRef:
+                name: psql-url
+                key: PSQL_URL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: default
+  name: userapi-service
+spec:
+  ports:
+  - port: 8000
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  selector:
+    app: userapi
